@@ -3,14 +3,16 @@ import { createHmac } from 'node:crypto'
 // otpauth://totp/hongtak@gmail.com?secret=go7tdq5ksuinqxht
 
 const base32 = 'MYONJOSVRMKN3ZFWHTST5SZ3WBTSOSKADVXP4MDFL4WJM3JTZEAQ'.toUpperCase()
-const now = Date.now()
-const t = Math.floor(now / 30000)
-const code1 = totp(base32, t)
+const code1 = totp(base32)
 console.log(code1)
 // ----------
 
-function totp (secret, time) {
+function totp (secret) {
   const secretBuf = base32decode(secret)
+
+  const now = Date.now()
+  const time = Math.floor(now / 30000)
+
   const tbuf = Buffer.alloc(8)
   tbuf.writeUInt32BE(time, 4)
   const hmac = createHmac('sha1', secretBuf)
