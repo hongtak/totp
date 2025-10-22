@@ -15,6 +15,28 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "totp",
+    "hotp",
+    "otp",
+    "one-time-password",
+    "2fa",
+    "two-factor",
+    "authentication",
+    "mfa",
+    "multi-factor",
+    "authenticator",
+    "google-authenticator",
+    "rfc6238",
+    "rfc4226",
+    "hmac",
+    "base32",
+    "security",
+    "crypto",
+    "token",
+    "time-based",
+    "counter-based"
+  ],
   "author": "Choi Hong Tak <hongtak@gmail.com>",
   "license": "MIT",
   "devDependencies": {
