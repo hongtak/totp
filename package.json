@@ -10,20 +10,17 @@
     "type": "git",
     "url": "git+https://github.com/hongtak/totp.git"
   },
-  "license": "ISC",
-  "author": "",
   "type": "module",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "Choi Hong Tak <hongtak@gmail.com>",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@hongtak/style": "^1.0.7",
     "eslint": "^9.38.0",
     "globals": "^16.4.0"
-  },
-  "dependencies": {
-    "speakeasy": "^2.0.0"
   }
 }
