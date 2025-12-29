@@ -1,6 +1,6 @@
 {
   "name": "@hongtak/totp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "homepage": "https://github.com/hongtak/totp#readme",
   "bugs": {
@@ -44,5 +44,8 @@
     "@hongtak/style": "^1.0.7",
     "eslint": "^9.38.0",
     "globals": "^16.4.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

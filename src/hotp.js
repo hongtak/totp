@@ -1,10 +1,5 @@
-import { randomBytes, createHmac } from 'node:crypto'
+import { createHmac } from 'node:crypto'
 import base32 from './base32.js'
-
-function generateSecret (length = 32) {
-  const secret = randomBytes(length)
-  return base32.encode(secret)
-}
 
 function generate (secret, counter, opts = {}) {
   const defaultOpts = {
@@ -40,7 +35,6 @@ function hmacGenCode (secretBuffer, counter, opts) {
 }
 
 export default {
-  generateSecret,
   generate,
   verify
 }

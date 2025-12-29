@@ -90,6 +90,23 @@ console.log(decoded.toString())
 // Output: Hello World
 ```
 
+### etting an otpauth:// URL
+
+```js
+import { otpauthURL, generateSecret } from '@hongtak/totp'
+
+const secret = generateSecret()
+
+// Generate otpauthURL
+const url = otpauthURL({
+  secret,
+  label: 'TestApp:username'
+  issuer: 'TestApp'
+})
+console.log(url)
+// Output: otpauth://totp/TestApp%3Ausername?secret=XXXXXX...&issuer=TestApp
+```
+
 ## API
 
 ### `generateSecret(length = 32)`
@@ -204,10 +221,6 @@ const isValid = hotp.verify(secret, 42, '12345678', {
 })
 ```
 
-#### `hotp.generateSecret(length = 32)`
-
-Alias for `generateSecret()`. Available on the hotp module for convenience.
-
 ---
 
 ### Base32 API
@@ -242,6 +255,23 @@ Decodes a Base32 string to binary data.
 const decoded = base32.decode('JBSWY3DP')
 // Returns: Buffer containing 'Hello'
 ```
+
+---
+
+### `otpauthURL(opts = {})`
+
+Getting an otpauth:// URL
+
+**Parameters:**
+- `opts` (object): Configuration options
+  - `type` (string): Valid types are hotp and totp. Default is `totp`.
+  - `label` (string): The label is used to identify which account a key is associated with.
+  - `secret` (string): Base32-encoded secret key.
+  - `issuer` (string, optional): Indicating the provider or service this account is associated with.
+  - `algorithm` (string, optional): Hash algorithm: `sha1`, `sha256` or `sha512`.
+  - `digits` (number, optional): Number of digits in the code.
+  - `counter` (number): Required if type is hotp.
+  - `period` (number, optional): Only if type is totp.
 
 ---
 
