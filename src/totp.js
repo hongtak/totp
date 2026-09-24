@@ -1,40 +1,36 @@
-import hotp from './hotp.js'
+import hotp, { matches } from './hotp.js'
+import * as validate from './validation.js'
 
-function generate (secret, opts = {}) {
-  const defaultOpts = {
-    digits: 6,
-    epoch: Date.now(),
-    algorithm: 'sha1',
-    step: 30
+function settings(opts) {
+  validate.options(opts)
+  const epoch = validate.integer(opts.epoch === undefined ? Date.now() : opts.epoch, 'Epoch', 0, Number.MAX_SAFE_INTEGER)
+  const step = validate.period(opts.step)
+  return {
+    counter: BigInt(epoch) / (1000n * BigInt(step)),
+    digits: validate.digits(opts.digits),
+    algorithm: validate.algorithm(opts.algorithm),
   }
-
-  Object.assign(defaultOpts, opts)
-  const counter = Math.floor(defaultOpts.epoch / (defaultOpts.step * 1000))
-  return hotp.generate(secret, counter, defaultOpts)
 }
 
-function verify (secret, token, opts = {}) {
-  const defaultOpts = {
-    digits: 6,
-    epoch: Date.now(),
-    algorithm: 'sha1',
-    step: 30,
-    window: 0
-  }
+function generate(secret, opts = {}) {
+  const config = settings(opts)
+  return hotp.generate(secret, config.counter, config)
+}
 
-  Object.assign(defaultOpts, opts)
-  const counter = Math.floor(defaultOpts.epoch / (defaultOpts.step * 1000))
-
-  for (let i = -defaultOpts.window; i <= defaultOpts.window; i++) {
-    const expectedCode = hotp.generate(secret, counter + i, defaultOpts)
-    if (expectedCode === token) {
-      return true
+function verify(secret, token, opts = {}) {
+  const config = settings(opts)
+  const window = validate.integer(opts.window === undefined ? 0 : opts.window, 'Window', 0, 10)
+  let valid = false
+  for (let i = -window; i <= window; i++) {
+    const counter = config.counter + BigInt(i)
+    if (counter < 0n) {
+      continue
     }
+    const expected = hotp.generate(secret, counter, config)
+    // Check every candidate so the matching time step does not cause an early return.
+    valid = matches(expected, token) || valid
   }
-  return false
+  return valid
 }
 
-export default {
-  generate,
-  verify
-}
+export default { generate, verify }

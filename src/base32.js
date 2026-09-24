@@ -1,12 +1,12 @@
 const RFC4648 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
 
-function encode (input, padding = false) {
+function encode(input, padding = false) {
   let output = ''
   let buffer = 0
   let bits = 0
 
-  for (let i = 0; i < input.length; i++) {
-    buffer = buffer << 8 | input[i]
+  for (const byte of input) {
+    buffer = buffer << 8 | byte
     bits += 8
     while (bits >= 5) {
       bits -= 5
@@ -28,8 +28,20 @@ function encode (input, padding = false) {
   }
 }
 
-function decode (input) {
-  const cleanedInput = input.toUpperCase().replace(/=/g, '')
+function decode(input) {
+  if (typeof input !== 'string') {
+    throw new TypeError('Base32 input must be a string')
+  }
+  if (!/^[A-Za-z2-7]*=*$/.test(input)) {
+    throw new Error('Invalid Base32 alphabet or padding')
+  }
+  const normalized = input.toUpperCase()
+  const cleanedInput = normalized.replace(/=+$/, '')
+  const remainder = cleanedInput.length % 8
+  if (![0, 2, 4, 5, 7].includes(remainder)
+    || (normalized.includes('=') && (remainder === 0 || normalized.length !== Math.ceil(cleanedInput.length / 8) * 8))) {
+    throw new Error('Invalid Base32 length or padding')
+  }
   const length = cleanedInput.length
 
   let value = 0
@@ -40,7 +52,9 @@ function decode (input) {
 
   for (const c of cleanedInput) {
     const pos = RFC4648.indexOf(c)
-    if (pos < 0) { throw new Error('Not RFC4648') }
+    if (pos < 0) {
+      throw new Error('Not RFC4648')
+    }
     value = value << 5 | pos
     bits += 5
 
@@ -49,15 +63,19 @@ function decode (input) {
       bits -= 8
     }
   }
-  return Buffer.from(output)
+  const result = Buffer.from(output)
+  if (encode(result) !== cleanedInput) {
+    throw new Error('Invalid Base32 trailing bits')
+  }
+  return result
 }
 
-function maskLastNBits (number, n) {
+function maskLastNBits(number, n) {
   const mask = ~(~0 << n)
   return number & mask
 }
 
-function padStringToMultiple (str, multiple, padChar) {
+function padStringToMultiple(str, multiple, padChar) {
   const currentLength = str.length
   const remainder = currentLength % multiple
 
@@ -69,5 +87,5 @@ function padStringToMultiple (str, multiple, padChar) {
 
 export default {
   encode,
-  decode
+  decode,
 }

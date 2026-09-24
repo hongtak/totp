@@ -6,5 +6,6 @@ import style from '@hongtak/style'
 
 export default defineConfig([
   { files: ['**/*.{js,mjs,cjs}'], plugins: { js }, extends: ['js/recommended'], languageOptions: { globals: globals.node } },
-  style
+  style,
+  { files: ['eslint.config.js'], rules: { 'n/no-unpublished-import': 'off' } },
 ])

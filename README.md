@@ -28,8 +28,7 @@ import { generateSecret, totp } from '@hongtak/totp'
 
 // Generate a secret key
 const secret = generateSecret()
-console.log('Secret:', secret)
-// Output: Secret: JBSWY3DPEHPK3PXP...
+// Store the secret securely; do not log it.
 
 // Generate a TOTP code
 const code = totp.generate(secret)
@@ -90,7 +89,7 @@ console.log(decoded.toString())
 // Output: Hello World
 ```
 
-### etting an otpauth:// URL
+### Getting an otpauth:// URL
 
 ```js
 import { otpauthURL, generateSecret } from '@hongtak/totp'
@@ -100,7 +99,7 @@ const secret = generateSecret()
 // Generate otpauthURL
 const url = otpauthURL({
   secret,
-  label: 'TestApp:username'
+  label: 'TestApp:username',
   issuer: 'TestApp'
 })
 console.log(url)
@@ -114,7 +113,7 @@ console.log(url)
 Generates a cryptographically secure random secret.
 
 **Parameters:**
-- `length` (number, optional): Length of the random bytes to generate. Default is 32.
+- `length` (number, optional): Number of random bytes to generate, an integer from 16 to 1024. Default is 32.
 
 **Returns:** Base32-encoded secret string.
 
@@ -135,10 +134,10 @@ Generates a TOTP code based on the current time.
 **Parameters:**
 - `secret` (string): Base32-encoded secret key
 - `opts` (object, optional): Configuration options
-  - `digits` (number): Number of digits in the code. Default is `6`.
-  - `epoch` (number): Timestamp in milliseconds. Default is `Date.now()`.
+  - `digits` (number): Number of digits: `6`, `7`, or `8`. Default is `6`.
+  - `epoch` (number): Nonnegative safe integer Unix timestamp in milliseconds. Default is `Date.now()`.
   - `algorithm` (string): Hash algorithm (`'sha1'`, `'sha256'`, `'sha512'`). Default is `'sha1'`.
-  - `step` (number): Time step in seconds. Default is `30`.
+  - `step` (number): Positive safe integer time step in seconds. Default is `30`.
 
 **Returns:** String containing the TOTP code.
 
@@ -159,11 +158,11 @@ Verifies a TOTP code against the secret, allowing for time drift.
 - `secret` (string): Base32-encoded secret key
 - `token` (string): TOTP code to verify
 - `opts` (object, optional): Configuration options
-  - `digits` (number): Number of digits in the code. Default is `6`.
-  - `epoch` (number): Timestamp in milliseconds. Default is `Date.now()`.
+  - `digits` (number): Number of digits: `6`, `7`, or `8`. Default is `6`.
+  - `epoch` (number): Nonnegative safe integer Unix timestamp in milliseconds. Default is `Date.now()`.
   - `algorithm` (string): Hash algorithm. Default is `'sha1'`.
-  - `step` (number): Time step in seconds. Default is `30`.
-  - `window` (number): Number of time steps to check before and after current time. Default is `0`.
+  - `step` (number): Positive safe integer time step in seconds. Default is `30`.
+  - `window` (number): Integer from `0` to `10`: time steps to check before and after the current time. Default is `0`.
 
 **Returns:** Boolean indicating whether the code is valid.
 
@@ -185,9 +184,9 @@ Generates an HOTP code based on a counter value.
 
 **Parameters:**
 - `secret` (string): Base32-encoded secret key
-- `counter` (number): Counter value
+- `counter` (number | bigint): Nonnegative unsigned 64-bit counter. Numbers must be safe integers; use `bigint` for larger values.
 - `opts` (object, optional): Configuration options
-  - `digits` (number): Number of digits in the code. Default is `6`.
+  - `digits` (number): Number of digits: `6`, `7`, or `8`. Default is `6`.
   - `algorithm` (string): Hash algorithm (`'sha1'`, `'sha256'`, `'sha512'`). Default is `'sha1'`.
 
 **Returns:** String containing the HOTP code.
@@ -206,10 +205,10 @@ Verifies an HOTP code against the secret and counter.
 
 **Parameters:**
 - `secret` (string): Base32-encoded secret key
-- `counter` (number): Counter value
+- `counter` (number | bigint): Nonnegative unsigned 64-bit counter. Numbers must be safe integers; use `bigint` for larger values.
 - `token` (string): HOTP code to verify
 - `opts` (object, optional): Configuration options
-  - `digits` (number): Number of digits in the code. Default is `6`.
+  - `digits` (number): Number of digits: `6`, `7`, or `8`. Default is `6`.
   - `algorithm` (string): Hash algorithm. Default is `'sha1'`.
 
 **Returns:** Boolean indicating whether the code is valid.
@@ -269,11 +268,48 @@ Getting an otpauth:// URL
   - `secret` (string): Base32-encoded secret key.
   - `issuer` (string, optional): Indicating the provider or service this account is associated with.
   - `algorithm` (string, optional): Hash algorithm: `sha1`, `sha256` or `sha512`.
-  - `digits` (number, optional): Number of digits in the code.
-  - `counter` (number): Required if type is hotp.
-  - `period` (number, optional): Only if type is totp.
+  - `digits` (number, optional): `6`, `7`, or `8`.
+  - `counter` (number | bigint): Required for HOTP; a nonnegative unsigned 64-bit integer. Numbers must be safe integers.
+  - `period` (number, optional): Positive safe integer seconds; used only for TOTP.
 
 ---
+
+## Validation and compatibility
+
+Invalid secrets and configuration throw errors. Verification returns `false` for malformed or incorrect tokens when the secret and configuration are valid. Tokens must be strings containing exactly the configured number of ASCII digits.
+
+- Algorithms are case-insensitive and limited to SHA1, SHA256, and SHA512.
+- Digits must be 6, 7, or 8. Verification windows are limited to 10 steps in each direction (at most 21 candidate codes).
+- Epochs are nonnegative safe integer milliseconds; steps and provisioning periods are positive safe integer seconds.
+- HOTP counters cover `0n` through `18446744073709551615n`. Use `bigint` above `Number.MAX_SAFE_INTEGER`.
+- Base32 decoding accepts lowercase and either correctly padded or unpadded input. It rejects misplaced padding, invalid lengths, and nonzero unused trailing bits. Empty Base32 data may be decoded, but OTP operations reject empty secrets.
+- `generateSecret` accepts 16–1024 bytes. Imported secrets must decode to at least one byte; callers should provision strong random secrets, preferably using `generateSecret()`.
+- Provisioning URLs normalize secrets to uppercase, unpadded Base32 and reject unsupported algorithms.
+
+These checks intentionally reject values previously accepted silently, including zero digits, infinite time steps, negative counters, malformed secrets, and excessive windows. Applications using those values must update their configuration before upgrading. Existing valid defaults are unchanged. TypeScript declarations are included; TypeScript projects should install `@types/node` for Node.js types.
+
+## Secure integration
+
+The verification functions are stateless. Your application must enforce rate limits and prevent replay:
+
+- For HOTP, atomically advance the stored counter after a successful verification so concurrent requests cannot reuse it.
+- For TOTP, atomically record successful use and reject reuse during the acceptance window. With clock-drift windows, track the actual matched time step; the boolean `verify` result alone does not identify it. Applications can match candidate steps with `generate` and their own timing-safe comparison.
+- Protect stored secrets and provisioning URLs from unauthorized access. Do not put them in application logs.
+- Keep verification windows as small as practical. Larger windows accept more possible codes.
+
+Token comparisons use Node's `timingSafeEqual` after checking token format and length. TOTP verification checks all eligible steps rather than returning at the first match. This does not make surrounding application logic timing-safe automatically.
+
+## Development
+
+Requires Node.js 24 or later.
+
+```bash
+npm ci
+npm test
+npm run lint
+```
+
+Tests include RFC HOTP/TOTP vectors, Base32 vectors and binary round trips, time-window boundaries, unsigned counter boundaries, and invalid-input regressions. Publishing runs tests and lint first; tests and development configuration are excluded from the package.
 
 ## How It Works
 

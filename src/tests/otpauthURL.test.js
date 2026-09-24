@@ -18,7 +18,7 @@ describe('otpauthURL', () => {
   it('should generate otpauth URL for TOTP', () => {
     const url = otpauthURL({
       secret,
-      label
+      label,
     })
     assert(url.startsWith(totpPrefix))
     const urlObj = new URL(url)
@@ -31,13 +31,13 @@ describe('otpauthURL', () => {
         otpauthURL({
           type: 'hotp',
           secret,
-          label
+          label,
         })
       },
       {
         name: 'Error',
-        message: 'Counter is required for HOTP'
-      }
+        message: 'Counter is required for HOTP',
+      },
     )
   })
 
@@ -46,7 +46,7 @@ describe('otpauthURL', () => {
       type: 'hotp',
       secret,
       label,
-      counter: 10
+      counter: 10,
     })
     assert(url.startsWith(totpPrefix.replace('totp', 'hotp')))
     const urlObj = new URL(url)
@@ -58,7 +58,7 @@ describe('otpauthURL', () => {
     const url = otpauthURL({
       secret,
       label,
-      algorithm: 'SHA256'
+      algorithm: 'SHA256',
     })
     assert(url.startsWith(totpPrefix))
     const urlObj = new URL(url)
@@ -70,7 +70,7 @@ describe('otpauthURL', () => {
     const url = otpauthURL({
       secret,
       label,
-      issuer: 'TestApp'
+      issuer: 'TestApp',
     })
     assert(url.startsWith(totpPrefix))
     const urlObj = new URL(url)
@@ -82,7 +82,7 @@ describe('otpauthURL', () => {
     const url = otpauthURL({
       secret,
       label,
-      period: 60
+      period: 60,
     })
     assert(url.startsWith(totpPrefix))
     const urlObj = new URL(url)
@@ -94,7 +94,7 @@ describe('otpauthURL', () => {
     const url = otpauthURL({
       secret,
       label,
-      foo: 'bar'
+      foo: 'bar',
     })
     assert(url.startsWith(totpPrefix))
     const urlObj = new URL(url)
