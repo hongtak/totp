@@ -1,6 +1,6 @@
 {
   "name": "@hongtak/totp",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Zero-dependency HOTP and TOTP generation, verification, and provisioning for Node.js",
   "homepage": "https://github.com/hongtak/totp#readme",
   "bugs": {
